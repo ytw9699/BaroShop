@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="client_product">
+	
+	<select id="countingForSingo" resultType="int" parameterType="hashmap">
+		select count(*) from ps_singo 
+		where product_num = #{product_num} and singo_writer = #{currentID}
+	</select>
+	
+	<select id="selectProductOne" resultType="hashmap" parameterType="hashmap">
+		select * from ps_product a, ps_category b 
+		where a.product_num = #{product_num} and a.category_num = b.category_num
+	</select>
+	
+	<select id="selectProductListMain" resultType="hashmap" parameterType="hashmap">
+			<!-- select * from(
+			select b.seller_id, a.subject, count(b.orderlist_num) as sell, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price from(
+			select * from ps_product  -->
+			select  a.seller_id ,a.subject, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price, b.profile_img
+			from ps_product a, ps_member b 
+			<!-- where howtosell != 2 and a.seller_id = b.id -->
+			<choose>
+				<when test='ls == "0" '>
+				<!-- where category_num = #{ca}) a left outer join ps_orderlist b on a.seller_id = b.seller_id 
+				group by b.seller_id, a.subject, a.product_regdate, a.product_num, a.category_num, a.howtosell, a.hitcount, 
+				a.stock, a.deal_status, a.board_status, a.content, a.first_img, a.product_status, a.price) c, ps_member d 
+				where c.seller_id = d.id  -->
+				where a.category_num = #{ca} and a.seller_id = b.id
+				</when>
+				<when test='ls == "1" '>
+				<!-- where howtosell = 2 and category_num = #{ca}) a left outer join ps_orderlist b on a.seller_id = b.seller_id 
+				group by b.seller_id, a.subject, a.product_regdate, a.product_num, a.category_num, a.howtosell, a.hitcount, 
+				a.stock, a.deal_status, a.board_status, a.content, a.first_img, a.product_status, a.price) c, ps_member d 
+				where c.seller_id = d.id  -->
+				where a.howtosell = 2 and a.category_num = #{ca} and a.seller_id = b.id
+				</when>
+				<when test='ls == "2" '>
+				<!-- where howtosell != 2 and category_num = #{ca}) a left outer join ps_orderlist b on a.seller_id = b.seller_id 
+				group by b.seller_id, a.subject, a.product_regdate, a.product_num, a.category_num, a.howtosell, a.hitcount, 
+				a.stock, a.deal_status, a.board_status, a.content, a.first_img, a.product_status, a.price) c, ps_member d 
+				where c.seller_id = d.id  -->
+				where a.howtosell != 2 and a.category_num = #{ca} and a.seller_id = b.id
+				</when>
+			</choose> 
+			<choose>
+				<when test='od == "0" '>
+				order by product_regdate desc
+				</when>
+				<when test='od == "1" '>
+				order by price asc
+				</when>
+				<when test='od == "2" '>
+				order by price desc
+				</when>
+			</choose>
+	</select>
+	
+	<select id="selectNomalProductList" resultType="hashmap" parameterType="hashmap">
+		<if test='category == "0" '>
+			<!-- select * from(
+			select b.seller_id, a.subject, count(b.orderlist_num) as sell, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price from(
+			select * from ps_product where howtosell != 2) a left outer join ps_orderlist b on a.seller_id = b.seller_id 
+			group by b.seller_id, a.subject, a.product_regdate, a.product_num, a.category_num, a.howtosell, a.hitcount, 
+			a.stock, a.deal_status, a.board_status, a.content, a.first_img, a.product_status, a.price) c, ps_member d 
+			where c.seller_id = d.id  -->
+			select  a.seller_id ,a.subject, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price, b.profile_img
+			from ps_product a, ps_member b 
+			where howtosell != 2 and a.seller_id = b.id
+			<choose>
+				<when test='orderMethod == "0" '>
+				order by product_regdate desc
+				</when>
+				<when test='orderMethod == "1" '>
+				order by price asc
+				</when>
+				<when test='orderMethod == "2" '>
+				order by price desc
+				</when>
+			</choose>
+		</if>
+		<if test='category != "0" '>
+			<!-- select * from(
+			select b.seller_id, a.subject, count(b.orderlist_num) as sell, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price from(
+			select * from ps_product where howtosell != 2 and category_num = #{category}) a left outer join ps_orderlist b on a.seller_id = b.seller_id 
+			group by b.seller_id, a.subject, a.product_regdate, a.product_num, a.category_num, a.howtosell, a.hitcount, 
+			a.stock, a.deal_status, a.board_status, a.content, a.first_img, a.product_status, a.price) c, ps_member d 
+			where c.seller_id = d.id 		 -->
+			select  a.seller_id ,a.subject, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price, b.profile_img
+			from ps_product a, ps_member b 
+			where howtosell != 2 and a.seller_id = b.id and category_num = #{category}
+			<choose>
+				<when test='orderMethod == "0" '>
+				order by product_regdate desc
+				</when>
+				<when test='orderMethod == "1" '>
+				order by price asc
+				</when>
+				<when test='orderMethod == "2" '>
+				order by price desc
+				</when>
+			</choose>
+			
+		</if>
+	</select>
+	
+	<select id="selectPlusProductList" resultType="hashmap" parameterType="hashmap">
+		<if test='category == "0" '>
+			select  a.seller_id ,a.subject, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price, b.profile_img
+			from ps_product a, ps_member b 
+			where howtosell = 2 and a.seller_id = b.id
+			<choose>
+				<when test='orderMethod == "0" '>
+				order by product_regdate desc
+				</when>
+				<when test='orderMethod == "1" '>
+				order by price asc
+				</when>
+				<when test='orderMethod == "2" '>
+				order by price desc
+				</when>
+			</choose>
+		</if>
+		<if test='category != "0" '>
+			select  a.seller_id ,a.subject, a.product_regdate, a.product_num ,
+			a.category_num, a.howtosell, a.hitcount, a.stock, a.deal_status, a.board_status, 
+			a.content, a.first_img, a.product_status, a.price, b.profile_img
+			from ps_product a, ps_member b 
+			where howtosell = 2 and a.seller_id = b.id and category_num = #{category}
+			<choose>
+				<when test='orderMethod == "0" '>
+				order by product_regdate desc
+				</when>
+				<when test='orderMethod == "1" '>
+				order by price asc
+				</when>
+				<when test='orderMethod == "2" '>
+				order by price desc
+				</when>
+			</choose>
+			
+		</if>
+	</select>
+	
+	<select id="selectProductCommentOfSeller" resultType="hashmap" parameterType="int">
+		select * from ps_pro_comment 
+		where product_num = #{product_num} 
+		order by group_num desc, step_num asc
+	</select>
+	
+	<select id="selectProductCommentOfBuyer" resultType="hashmap" parameterType="hashmap">
+		select * from(
+		select * from ps_pro_comment where product_num = #{product_num}) 
+		where owner = #{owner} or owner = #{seller} 
+		order by group_num desc, step_num asc
+	</select>
+	
+	<select id="selectPurchaseList" resultType="hashmap" parameterType="int">
+		select * from ps_purchase_list 
+		where product_num = #{product_num}
+		order by regdate desc
+	</select>
+	
+	<select id="selectSellerPurchaseList" resultType="hashmap" parameterType="int">
+		select * from ps_purchase_list 
+		where product_num = #{product_num} 
+		order by regdate desc
+	</select>
+	
+	<select id="selectAlradyPurchaseApproving" resultType="int" parameterType="int">
+		select count(*) from ps_purchase_list 
+		where product_num = #{product_num} and status = 1
+	</select>
+	
+	<select id="selectMyPurchase2" resultType="int" parameterType="hashmap">
+		select status from ps_purchase_list 
+		where buyer_id = #{buyer_id} and product_num = #{product_num}
+	</select>
+	
+	<select id="getCategoryList" resultType="hashmap">
+		select * from ps_category
+	</select>
+	
+	<insert id="insertProduct" parameterType="hashmap">
+		insert into ps_product(product_num,
+								category_num,
+								seller_id,
+								howtosell,
+								hitcount,
+								stock,
+								product_regdate,
+								deal_status,
+								board_status,
+								content,
+								first_img,
+								subject,
+								product_status,
+								price) values(product_seq.NEXTVAL,
+												#{category_num},
+												#{seller_id},
+												#{howtosell},
+												0,
+												#{stock},
+												sysdate,
+												0,
+												0,
+												#{content},
+												#{first_img},
+												#{subject},
+												#{product_status},
+												#{price})
+	</insert>
+	
+	<insert id="insertProductComment" parameterType="hashmap">
+		insert into ps_pro_comment(comment_num,
+									product_num,
+									comment_writer,
+									group_num,
+									step_num,
+									comment_regdate,
+									comment_content,
+									owner) values(comment_seq.NEXTVAL,
+															#{product_num},
+															#{comment_writer},
+															comment_seq.CURRVAL,
+															#{step_num},
+															sysdate,
+															#{comment_content},
+															#{comment_writer})
+	</insert>
+	
+	<!-- 문의 리플작성 -->
+	<select id="getCurrentStepNumber" resultType="int" parameterType="hashmap">
+		select max(step_num) from ps_pro_comment where group_num = #{group_num}
+	</select>
+	
+	<insert id="insertProductReComment" parameterType="hashmap">
+		insert into ps_pro_comment(comment_num,
+									product_num,
+									comment_writer,
+									group_num,
+									step_num,
+									comment_regdate,
+									comment_content,
+									owner) values(comment_seq.NEXTVAL,
+															#{product_num},
+															#{comment_writer},
+															#{group_num},
+															#{step_num},
+															sysdate,
+															#{comment_content},
+															#{owner})
+	</insert>
+	
+	<insert id="insertPurchaseList" parameterType="hashmap">
+		insert into ps_purchase_list(purchase_num,
+										product_num,
+										buyer_id,
+										regdate,
+										status) values(pl_seq.NEXTVAL,
+														#{product_num},
+														#{buyer_id},
+														sysdate,
+														0)
+	</insert>
+	
+	<insert id="insertSingoProcess" parameterType="hashmap">
+		insert into ps_singo(singo_num,
+							product_num,
+							singoee,
+							singo_writer,
+							singo_regdate,
+							singo_content) values(SINGO_SEQ.NEXTVAL,
+													#{product_num},
+													#{singoee},
+													#{singo_writer},
+													sysdate,
+													#{singo_content})
+	</insert>
+	
+	<update id="updateProductHitcount" parameterType="hashmap">
+		update ps_product set hitcount = hitcount + 1 where product_num = #{product_num}
+	</update>
+	
+	<update id="letPurchaseApprove" parameterType="int">
+		update ps_purchase_list set status = 1 
+		where purchase_num = #{purchase_num}
+	</update>
+	
+	<update id="letPurchaseApproveCancel" parameterType="int">
+		update ps_purchase_list set status = 0 
+		where purchase_num = #{purchase_num}
+	</update>
+	
+	<delete id="deletePurchaseList" parameterType="hashmap">
+		delete from ps_purchase_list 
+		where product_num = #{product_num} and buyer_id = #{buyer_id}
+	</delete>
+	
+	<!-- 알람읽기 -->
+	<update id="alarmRead" parameterType="int">
+			update PS_ALARM set ALARM_CHECK = 'YES' where ALARM_NUM = #{ALARM_NUM}
+	</update>
+	<!-- 최근본상품 로직 by태원 -->
+	<insert id="insertRecentProduct" parameterType="hashmap">
+			insert into PS_RECENT_PRODUCT(RECENT_NUM,
+									RECENT_PRODUCT_NUM,
+									RECENT_CATEGORY_NUM,
+									RECENT_REGDATE,
+									RECENT_ID) values(RECENT_PRODUCT_SEQ.NEXTVAL,
+													#{product_num},
+													#{category_num},
+													sysdate,
+													#{currentID}
+													)
+	</insert>
+	<!-- 최근본상품 로직 by태원 -->
+	
+	<!-- 문의삭제(원글삭제) -->
+	<delete id="deleteProductComment" parameterType="int">
+		delete from ps_pro_comment where group_num = #{parameterNumber}
+	</delete>
+	
+	<!-- 문의삭제(대댓삭제) -->
+	<delete id="deleteProductReple" parameterType="int">
+		delete from ps_pro_comment where comment_num = #{parameterNumber}
+	</delete>
+	
+</mapper>

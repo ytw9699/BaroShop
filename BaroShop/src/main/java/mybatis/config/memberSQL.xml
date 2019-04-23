@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member"> 
+	<!-- 일반 회원가입 -->
+	<insert id="insertMember" parameterType="hashmap">
+		insert into PS_MEMBER(id,
+							password,
+							name,
+							email,
+							address,
+							kind,
+							account,
+							account_name,
+							bank,
+							regdate) values(#{id},
+									#{password},
+									#{name},
+									#{email},
+									#{address},
+									#{kind},
+									#{account},
+									#{account_name},
+									#{bank},
+									sysdate )
+	</insert>
+	
+	<!-- 사업자 회원가입 -->
+	<insert id="insertBsMember" parameterType="hashmap">
+		insert into PS_MEMBER(id,
+							password,
+							name,
+							email,
+							address,
+							kind,
+							account,
+							account_name,
+							phonenum,
+							bank,
+							regdate,
+							business_number,
+							business_name
+							) values(#{id},
+									#{password},
+									#{name},
+									#{email},
+									#{address},
+									#{kind},
+									#{account},
+									#{account_name},
+									#{phoneNum},
+									#{bank},
+									sysdate,
+									#{business_number},
+									#{business_name}
+									)
+	</insert>
+	
+	<select id="userCheck" parameterType="hashmap" resultType="hashmap">
+			SELECT * FROM PS_MEMBER WHERE ID = #{ID}
+	</select>
+	
+	<update id="userAlarmChange" parameterType="hashmap">
+		update ps_member set alarm_consent = 
+		<choose>
+			<when test="currentAlarm == 'ON'">'OFF'</when>
+			<when test="currentAlarm == 'OFF'">'ON'</when>
+		</choose>
+		 where id = #{sessionId}
+	</update>
+	
+	<update id="insertDate" parameterType="hashmap">
+	  	update ps_member set latestLogin1 = sysdate where id = #{ID}
+	</update>
+	
+	
+	<update id="changeDate" parameterType="hashmap">
+	  	update ps_member set latestLogin2 = #{LATESTLOGIN1} where id = #{ID}
+	</update>
+	
+	<!-- 아이디 중복확인 -->
+	<select id="checkJoinId" parameterType="String" resultType="int">
+			SELECT count(*) FROM PS_MEMBER WHERE ID = #{id}
+	</select>
+	
+	<select id="checkLogin" parameterType="String" resultType="String">
+			select status from ps_member where id = #{id}
+	</select>
+		
+	<select id="findId" parameterType="hashmap" resultType="String">
+			SELECT ID FROM PS_MEMBER WHERE NAME = #{name} and EMAIL = #{email}
+	</select>
+	
+	<select id="findPassword" parameterType="hashmap" resultType="String">
+		SELECT EMAIL FROM PS_MEMBER WHERE NAME = #{name} and EMAIL = #{email} and ID = #{id}
+	</select>
+	
+	<update id="resetPassword" parameterType="hashmap">
+		update PS_MEMBER set password = #{password1} 
+		where email = #{email} and id = #{id} and name = #{name}
+	</update>
+
+	<select id="selectRePs" parameterType="hashmap" resultType="String">
+		SELECT password FROM PS_MEMBER where email = #{email} and id = #{id} and name = #{name}
+	</select>
+	
+</mapper>

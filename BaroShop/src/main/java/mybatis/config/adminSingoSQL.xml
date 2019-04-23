@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="adminSingo">
+
+	<resultMap type="AdminSingoModel" id="singoRes">
+		<result property="singo_num" column="singo_num"/>
+		<result property="product_num" column="product_num"/>
+		<result property="singoee" column="singoee"/>
+		<result property="singo_writer" column="singo_writer"/>
+		<result property="singo_regdate" column="singo_regdate"/>
+		<result property="singo_content" column="singo_content"/>
+	</resultMap>
+	
+	
+		
+	<select id="singoList-all" resultMap="singoRes">
+		SELECT * FROM ps_singo ORDER BY singo_num desc
+	</select>
+<!-- 	board_status included -->
+	<select id="singoList-all2" resultType="hashmap">
+		SELECT a.singo_num, a.product_num, a.singoee,
+		a.singo_writer, a.singo_regdate, a.singo_content, b.board_status ,b.SUBJECT
+		FROM ps_singo a INNER JOIN ps_product b ON a.product_num = b.product_num
+		ORDER BY a.singo_num DESC
+		<!-- SELECT a.singo_num, a.product_num, a.singoee,
+		a.singo_writer, a.singo_regdate, a.singo_content, b.board_status 
+		FROM ps_singo a, ps_product b 
+		where a.product_num = b.product_num -->
+	</select>
+	
+<!-- 	피신고자 id -->
+	<select id="singoSearch0" resultMap="singoRes" parameterType="String">
+		SELECT * FROM ps_singo
+		WHERE singoee LIKE #{isSearch}
+		ORDER BY singo_num DESC
+	</select>
+		
+<!-- 	신고자  -->
+	<select id="singoSearch1" resultMap="singoRes" parameterType="String">
+		SELECT * FROM ps_singo
+		WHERE singo_writer LIKE #{isSearch}
+		ORDER BY singo_num DESC
+	</select>
+	
+<!-- 	신고내용  -->
+	<select id="singoSearch2" resultMap="singoRes" parameterType="String">
+		SELECT * FROM ps_singo
+		WHERE singo_content LIKE #{isSearch}
+		ORDER BY singo_num DESC
+	</select>	
+	
+	<update id="doBlind" parameterType="int">
+		update ps_product set board_status = 1 where product_num = #{PRODUCT_NUM}
+	</update>
+		
+</mapper>
+

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="adminOrder">
+	
+	<resultMap type="AdminPaymentModel" id="orderRes">
+	
+		<result property="order_num" column="order_num"/>
+		<result property="buyer_id" column="buyer_id"/>
+		<result property="status" column="status"/>
+		<result property="total_price" column="total_price"/>
+		<result property="destination" column="destination"/>
+		<result property="account" column="account"/>
+		<result property="account_name" column="account_name"/>
+		<result property="bank" column="bank"/>
+		<result property="purchase_num" column="purchase_num"/>
+		<result property="delivery_company" column="delivery_company"/>
+		<result property="invoice_num" column="invoice_num"/>
+		<result property="step1_date" column="step1_date"/>
+		<result property="step2_date" column="step2_date"/>
+		<result property="step3_date" column="step3_date"/>
+		<result property="step4_date" column="step4_date"/>
+		<result property="cancel_date" column="cancel_date"/>
+		<result property="seller_id" column="seller_id"/>
+		
+	</resultMap>
+	<!-- 전체 주문리스트 -->
+	
+	<select id="orderList-all" resultType="hashmap">
+			SELECT * FROM ps_order a INNER JOIN ps_orderlist b
+		ON a.order_num = b.order_num ORDER BY a.order_num desc
+	</select>
+	
+	<select id="orderList3" resultType="hashmap" parameterType="hashmap">
+	SELECT *FROM ps_order a INNER JOIN ps_orderlist b
+			ON a.order_num = b.order_num and a.ORDER_NUM = #{ORDER_NUM} ORDER BY a.order_num desc
+	</select>
+
+	<!-- 전체 주문리스트 -->
+<!-- 	<select id="orderList-all" resultMap="orderRes"> -->
+<!-- 		SELECT * FROM ps_order ORDER BY order_num desc -->
+<!-- 	</select> -->
+	
+	<!-- 주문상세보기 -->
+	<select id="orderDetail" resultType="hashmap" parameterType="int">
+		select *
+		from ps_order
+		where order_num = #{order_num} 
+	</select>
+	
+	<!-- 전체주문리스트2 + ps_orderList까지합친 주문리스트  -->
+	<!-- 	parameterType 은 order_num  -->
+	<select id="orderDetail2" resultType="hashmap" parameterType="int">
+		SELECT *
+		FROM ps_order a INNER JOIN ps_orderlist b
+		ON a.order_num = b.order_num
+		where a.order_num = #{order_num} 
+		
+	</select>
+	
+	
+	
+	
+	<select id="orderSearch0" resultMap="orderRes" parameterType="String">
+		SELECT * FROM ps_order
+		WHERE buyer_id LIKE #{isSearch}
+		ORDER BY order_num DESC
+	</select>
+	
+	<select id="orderSearch1" resultMap="orderRes" parameterType="String">
+		SELECT * FROM ps_order
+		WHERE status LIKE #{isSearch}
+		ORDER BY order_num DESC
+	</select>
+	
+	<select id="orderSearch2" resultMap="orderRes" parameterType="String">
+		SELECT * FROM ps_order
+		WHERE delivery_company LIKE #{isSearch}
+		ORDER BY order_num DESC
+	</select>
+	
+	<!-- 주문한개가져오기 -->
+	<select id="orderGetOne" resultMap="orderRes" parameterType="String">
+	select *
+	from ps_order
+	where order_num = #{order_num} 
+	</select>
+	
+	<!--특 주문 찾기 쿼리  -->
+<!-- 	<select id="searchOrder" resultMap="orderRes" parameterType="String"> -->
+<!-- 		SELECT * FROM ps_order  -->
+<!-- 			WHERE buyer_id LIKE #{search} -->
+<!-- 			OR status LIKE #{search} -->
+<!-- 			OR delivery_company LIKE #{search} -->
+<!-- 		ORDER BY order_num desc -->
+<!-- 	</select> -->
+	
+	<!-- 거래상태 업데이트 -->
+	<update id="updateStatus1" parameterType="AdminPaymentModel">
+		UPDATE ps_order
+			SET status = 1,
+			step2_date = sysdate
+		WHERE order_num = #{order_num}
+	</update>
+	<update id="updateStatus2" parameterType="AdminPaymentModel">
+		UPDATE ps_order
+			SET status = 2,
+			delivery_company = #{delivery_company},
+			invoice_num = #{invoice_num},
+			step3_date = sysdate
+		WHERE order_num = #{order_num}
+	</update>
+	<update id="updateStatus3" parameterType="AdminPaymentModel">
+		UPDATE ps_order
+			SET status = 3,	
+			step4_date = sysdate
+		WHERE order_num = #{order_num}
+	</update>
+	
+	<!-- product_num에 해당하는만큼 order_quantity차감 여기서 파라미터는 모델(맵)으로 -->
+	<update id="updateStock"  parameterType="hashmap">
+		UPDATE ps_product 
+			SET stock = stock - #{ORDER_QUANTITY}
+			WHERE product_num = #{PRODUCT_NUM}
+	</update>
+</mapper>
+

@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mypage"> 
+
+<select id="adminOrderList" resultType="hashmap">
+		SELECT * FROM ps_order ORDER BY order_num desc
+</select>
+
+<select id="orderSearch0" resultType="hashmap" parameterType="String">
+	SELECT * FROM ps_order 
+			WHERE buyer_id LIKE #{isSearch}
+			ORDER BY order_num DESC
+</select>	
+
+
+<select id="orderSearch1" resultType="hashmap" parameterType="String">
+		SELECT * FROM ps_order
+		WHERE status LIKE #{isSearch}
+		ORDER BY order_num DESC
+	</select>
+	
+<select id="orderSearch2" resultType="hashmap" parameterType="String">
+		SELECT * FROM ps_order
+		WHERE delivery_company LIKE #{isSearch}
+		ORDER BY order_num DESC
+</select>
+
+
+<select id="orderSubList2" resultType="hashmap" parameterType="hashmap">
+SELECT *FROM ps_order a INNER JOIN ps_orderlist b
+		ON a.order_num = b.order_num and a.ORDER_NUM = #{ORDER_NUM} ORDER BY a.order_num desc
+</select>
+	
+	
+<select id="userInfo" parameterType="String" resultType="hashmap">
+		select * from PS_MEMBER WHERE ID = #{sessionId}
+</select>
+
+<select id="getMyAlarmList" resultType="hashmap" parameterType="hashmap">
+	select * from ps_alarm 
+	where alarm_target = #{currentID} and alarm_check = 'NO' 
+	order by alarm_regdate desc
+</select>
+
+<update id="updateBusiness" parameterType="hashmap">
+		update PS_MEMBER set 
+		password = #{password},
+		email = #{email},
+		address = #{address},
+		account = #{account},
+		account_name = #{account_name},
+		bank = #{bank},
+		phonenum = #{phoneNum},
+		profile_img = #{profile_img},
+		alarm_consent = #{alarm_consent},
+		business_number = #{business_number},
+		business_name = #{business_name}
+		where id = #{id}
+</update>	
+
+<update id="updatePersonal" parameterType="hashmap">
+		update PS_MEMBER set 
+		password = #{password},
+		email = #{email},
+		address = #{address},
+		account = #{account},
+		phonenum = #{phoneNum},
+		account_name = #{account_name},
+		bank = #{bank},
+		profile_img = #{profile_img},
+		alarm_consent = #{alarm_consent}
+		where id = #{id}
+</update>	
+
+		<!-- 판매관리 리스트 -->
+<select id="sellList" resultType="hashmap" parameterType="hashmap">
+		<if test='HowToSell == "3" '>
+		<!-- 전체 상품 보기 -->
+		select * from ps_product where HowToSell != '3'  and seller_id = #{sessionId}
+		
+			<choose>
+			<!-- 모든 상품/판매중상품/거래중상품/판매완료상품 나누기 -->
+				<when test='deal_status == "3" '>
+				and deal_status != '3'
+				</when>
+				<when test='deal_status == "2" '>
+				and deal_status = '2'
+				</when>
+				<when test='deal_status == "1" '>
+				and deal_status = '1'
+				</when>
+				<when test='deal_status == "0" '>
+				and deal_status = '0'
+				</when>
+			</choose>
+			order by PRODUCT_REGDATE desc
+		</if>
+		
+		<if test='HowToSell != "3" '>
+		 <!-- 일반 안전 상품/ 일반 안전 상품+직거래/ 픽셀플러스 상품/나누기 -->
+		select * from ps_product where howtosell = #{HowToSell}  and seller_id = #{sessionId} 
+			<!-- 모든 상품/판매중상품/거래중상품/판매완료상품 나누기 -->
+			<choose>
+				<when test='deal_status == "3" '>
+				and deal_status != '3'
+				</when>
+				<when test='deal_status == "2" '>
+				and deal_status = '2'
+				</when>
+				<when test='deal_status == "1" '>
+				and deal_status = '1'
+				</when>
+				<when test='deal_status == "0" '>
+				and deal_status = '0'
+				</when>
+			</choose>
+			order by PRODUCT_REGDATE desc
+		</if>
+	</select>
+
+<select id="purchaseList" resultType="hashmap" parameterType="String">
+	
+	select a.seller_id, a.subject, a.first_img, a.price, a.category_num, b.purchase_num, b.product_num, b.buyer_id, b.regdate,
+ b.status
+   from(select seller_id, subject, first_img, price, category_num, product_num  from ps_product)a, 
+ps_purchase_list b where b.deleted = 'NO' and a.product_num = b.product_num and b.buyer_id = #{sessionId} order by b.regdate desc
+      
+</select>
+
+<select id="secondSellList" resultType="hashmap" parameterType="String">
+	
+	select a.seller_id, a.subject, a.first_img, a.price, a.category_num, b.purchase_num, b.product_num, b.buyer_id, b.regdate,
+ b.status
+   from(select seller_id, subject, first_img, price, category_num, product_num  from ps_product)a, 
+ps_purchase_list b where a.product_num = b.product_num and a.seller_id = #{sessionId} order by b.regdate desc
+      
+</select>
+
+<!-- ps_order에서  리스트  반환-->
+<select id="saleList" resultType="hashmap" parameterType="hashmap">
+
+<if test='status == "5" '>
+	<!-- 전체 상품 보기 -->
+	<!-- select a.order_num, a.status, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5
+	group by a.order_num, a.status, a.step1_date order by a.step1_date desc
+	 위와 아래는 같은거 아래꺼를 쓰자-->
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc
+</if>
+
+<if test='status != "5" '>
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status = #{status} order by a.step1_date desc
+</if>
+
+</select>
+<!-- PS_ORDERLIST + ps_product+ps_order 조인해서 리스트 반환-->
+<select id="saleSubList" resultType="hashmap" parameterType="hashmap">
+
+select * from ps_orderlist a, ps_product b, ps_order c
+where a.seller_id = #{sessionId} and a.order_num = #{ORDER_NUM} and a.product_num = b.product_num and a.order_num = c.order_num and
+
+<if test='status == "5" '>
+c.status != '5'
+</if>
+
+<if test='status != "5" '>
+c.status = #{status} 
+</if>
+
+
+</select>
+<!-- ps_order에서  리스트  반환-->
+<select id="orderList" resultType="hashmap" parameterType="hashmap">
+
+<if test='status == "5" '>
+		<!-- 전체 상품 보기 -->
+		 select * from ps_order where buyer_id = #{sessionId} and status != '5' order by step1_date desc
+</if>
+<if test='status != "5" '>
+		<!-- 전체 상품 보기 -->
+		 select * from ps_order where buyer_id = #{sessionId} and status = #{status} order by step1_date desc
+</if>
+	
+</select>
+
+<!-- PS_ORDERLIST + ps_product+ps_order 조인해서 리스트 반환-->
+<select id="orderSubList" resultType="hashmap" parameterType="hashmap">
+
+select b.PRICE, b.SUBJECT, b.FIRST_IMG, b.category_num, b.product_num, a.ORDER_NUM, a.ORDER_QUANTITY
+from(select * from PS_ORDERLIST)a, ps_product b, ps_order c where a.ORDER_NUM = #{ORDER_NUM} and a.product_num = b.product_num and c.order_num = a.order_num and
+
+<if test='status == "5" '>
+c.status != '5' 
+</if>
+
+<if test='status != "5" '>
+c.status = #{status} 
+</if>
+
+</select>
+
+<!-- 주문조회 상세보기 -->	
+<select id="orderDetail" parameterType="int" resultType="hashmap">
+
+	select * from ps_order where ORDER_NUM = #{ORDER_NUM}
+
+</select>
+<!-- 판매조회 상세보기 -->	
+<select id="saleDetail" parameterType="Integer" resultType="hashmap">
+
+select * from ps_order where ORDER_NUM = #{ORDER_NUM}
+
+</select>
+<!-- 판매조회 상세보기 안에 관련 상품글 리스트 -->
+<select id="saleSubDetail" parameterType="hashmap" resultType="hashmap">
+
+select * from ps_product a, PS_ORDERLIST b where b.ORDER_NUM = #{ORDER_NUM} and b.PRODUCT_NUM = a.PRODUCT_NUM and b.SELLER_ID = #{sessionId}
+
+</select>
+<!-- 주문조회 상세보기 안에 관련 상품글 리스트 -->
+<select id="orderSubDetail" parameterType="Integer" resultType="hashmap">
+
+select * from ps_product a, PS_ORDERLIST b where b.ORDER_NUM = #{ORDER_NUM} and b.PRODUCT_NUM = a.PRODUCT_NUM
+
+</select>
+
+<select id="userCheck" parameterType="String" resultType="String">
+			SELECT password FROM PS_MEMBER WHERE ID = #{ID}
+</select>
+<!-- 재고 1 증가 -->
+<update id="pulsStock" parameterType="String">
+		update PS_PRODUCT set stock = stock+1 where PRODUCT_NUM = #{PRODUCT_NUM}
+</update>
+<!-- 재고 1 감소 -->
+<update id="minusStock" parameterType="String">
+		update PS_PRODUCT set stock = stock-1 where PRODUCT_NUM = #{PRODUCT_NUM}
+</update>
+<!-- 알람입력 -->
+<insert id="alarmInsert" parameterType="hashmap">
+		insert into PS_ALARM(ALARM_NUM,
+							ALARM_TARGET,
+							ALARM_WRITER,
+							ALARM_VARIABLE1,
+							ALARM_VARIABLE2,
+							ALARM_KIND,
+							ALARM_REGDATE
+							) values(ALARM_SEQ.NEXTVAL,
+									#{ALARM_TARGET},
+									#{ALARM_WRITER},
+									#{ALARM_VARIABLE1},
+									#{ALARM_VARIABLE2},
+									#{ALARM_KIND},
+									sysdate)
+									
+</insert>
+<!-- 알람가져오기 -->
+<select id="alarmSelect" parameterType="hashmap" resultType="hashmap">
+			select * from ps_alarm WHERE ALARM_TARGET = #{sessionId}
+			
+			<if test='ALARM_CHECK == "ALL" '>
+			</if>
+			
+			<if test='ALARM_CHECK == "NO" '>
+			and ALARM_CHECK = #{ALARM_CHECK} 
+			</if>
+			
+			<if test='ALARM_CHECK == "YES" '>
+			and ALARM_CHECK = #{ALARM_CHECK} 
+			</if>
+			
+			order by ALARM_REGDATE desc
+</select>
+
+<select id="alarmDelete" parameterType="hashmap">
+	<!-- 알람리스트에서 알람번호에 해당하는거 한줄 삭제 -->
+	delete from PS_ALARM where ALARM_NUM = #{ALARM_NUM}
+</select>
+
+<!-- 알림,알람 전체삭제 -->
+<select id="AllAlarmDelete" resultType="int" parameterType="String">
+	delete from PS_ALARM where ALARM_TARGET = #{sessionId}
+</select>
+
+<select id="deletePurchaseList" parameterType="hashmap">
+	<!-- 구매리스트에서 구매신청번호에 해당하는거 한줄 삭제 -->
+	delete from ps_purchase_list where purchase_num = #{PURCHASE_NUM}
+		
+</select>
+<!-- //주문번호를 결제취소 44로바꿈 -->
+<update id="canclePs_order" parameterType="hashmap">
+		update ps_order set status = '44' where ORDER_NUM = #{ORDER_NUM}
+</update>
+
+<update id="cancleDate" parameterType="hashmap">
+	update ps_order set CANCEL_DATE = sysdate where ORDER_NUM = #{ORDER_NUM}
+</update>
+
+<update id="updateDeal_status" parameterType="hashmap">
+		update PS_PRODUCT set DEAL_STATUS = '0' where PRODUCT_NUM = #{PRODUCT_NUM}
+</update>
+
+<update id="completing" parameterType="hashmap">
+		update PS_ORDER set STATUS = '3' where ORDER_NUM = #{ORDER_NUM}
+</update>
+
+<update id="step4_date" parameterType="hashmap">
+	update ps_order set step4_date = sysdate where ORDER_NUM = #{ORDER_NUM}
+</update>
+
+<select id="recentlist" resultType="hashmap" parameterType="String">
+	select * from PS_RECENT_PRODUCT a, PS_PRODUCT b where a.RECENT_ID = #{sessionId} and a.RECENT_PRODUCT_NUM  = b.PRODUCT_NUM order by a.RECENT_REGDATE desc
+	
+</select>
+
+<select id="alarmCount" resultType="int" parameterType="String">
+		select count(*) from ps_alarm where alarm_target = #{sessionId} and alarm_check = 'NO'
+</select>
+
+<update id="deliveryInsert" parameterType="hashmap">
+	update ps_order set
+	step3_date = sysdate,
+	STATUS = '2',
+	DELIVERY_COMPANY = #{DELIVERY_COMPANY},
+	INVOICE_NUM = #{INVOICE_NUM}
+	where ORDER_NUM = #{ORDER_NUM}
+</update>
+ 
+<update id="profile" parameterType="hashmap">
+	update ps_member set PROFILE_IMG = #{PROFILE_IMG} where ID = #{sessionId}
+</update>
+
+<update id="defaultProfile" parameterType="string">
+		update ps_member set PROFILE_IMG = 'default' WHERE id = #{sessionId}
+</update>
+
+<!-- 오더리스트 전체 카운트 -->
+<select id="saleCount5" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status != '5'
+</select>
+
+<select id="saleCount0" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status = '0'
+</select>
+
+<select id="saleCount1" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status = '1'
+</select>
+
+<select id="saleCount2" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status = '2'
+</select>
+
+<select id="saleCount3" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status = '3'
+</select>
+
+<select id="saleCount44" resultType="int" parameterType="hashmap">
+	select count(*) from(
+	select distinct a.status, b.order_num, a.step1_date from ps_order a, ps_orderlist b 
+	where b.seller_id = #{sessionId} and a.order_num = b.order_num and a.status != 5 order by a.step1_date desc) where status = '44'
+</select>
+
+<!-- 오더리스트 전체 카운트 -->
+<select id="orderCount5" resultType="int" parameterType="hashmap">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status != '5'
+</select>
+<!-- 오더리스트 입금대기 카운트 -->
+<select id="orderCount0" resultType="int" parameterType="String">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status = '0'
+</select>
+<!-- 오더리스트 입금완료 및 배송대기중-->
+<select id="orderCount1" resultType="int" parameterType="hashmap">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status = '1'
+</select>
+<!-- 오더리스트 배송 및 인수확인 대기 -->
+<select id="orderCount2" resultType="int" parameterType="hashmap">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status = '2'
+</select>
+<!-- 오더리스트 인수확인 및 거래완료 -->
+<select id="orderCount3" resultType="int" parameterType="hashmap">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status = '3'
+</select>
+<!-- 오더리스트 결체취소 -->
+<select id="orderCount44" resultType="int" parameterType="hashmap">
+		select count(*) from  ps_order where buyer_id =  #{sessionId} and status = '44'
+</select>
+
+<select id="alarmCountKind1" resultType="int" parameterType="String">
+		select count(*) from ps_alarm where alarm_target = #{sessionId}
+</select>
+
+<select id="alarmCountKind2" resultType="int" parameterType="String">
+		select count(*) from ps_alarm where alarm_target = #{sessionId} and alarm_check = 'NO'
+</select>
+
+<select id="alarmCountKind3" resultType="int" parameterType="String">
+		select count(*) from ps_alarm where alarm_target = #{sessionId} and alarm_check = 'YES'
+</select>
+
+
+<!-- 최근본상품 전체삭제 -->
+<select id="deleteRecenPd" resultType="int" parameterType="String">
+	delete from PS_RECENT_PRODUCT where recent_id = #{sessionId}
+</select>
+
+<!-- 최근본상품 각각삭제 -->
+<select id="EachdeleteRecenPd" resultType="int" parameterType="int">
+	delete from PS_RECENT_PRODUCT where RECENT_NUM = #{RECENT_NUM}
+</select>
+
+	
+</mapper>
