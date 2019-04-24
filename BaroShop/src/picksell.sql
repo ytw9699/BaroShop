@@ -2,7 +2,7 @@
 전체적인 개발방향에 있어서 좋은것인지 
 중복을 줄인것인가 vs 복잡한 로직을 줄이고, 자유도높은 로직을 짤고, 가독성이 높은 로직을짤것인가
 alter table ps_orderlist drop (deleted); 테이블 컬럼 삭제
-ALTER TABLE PS_PURCHASE_LIST ADD(deleted VARCHAR2(30) DEFAULT 'NO'); 테이블 컬럼 추가
+
 alter table PS_MEMBER add(phoneNum varchar2(40) default '""');
 ALTER TABLE PS_MEMBER ADD(latestLogin1 DATE); 테이블 컬럼 추가
 
@@ -117,11 +117,11 @@ insert into PS_MEMBER(ID,
 					EMAIL,
 					KIND,
 					REGDATE ) values(
-							'testid',
+							'admin',
 							2222,
-							'testname',
-							'ytw9699@naver.com',
-							0,
+							'admin',
+							'growing9699@gmail.com',
+							99,
 							sysdate
 							)
 							
@@ -193,12 +193,14 @@ CREATE SEQUENCE PRODUCT_SEQ
 
 DROP TABLE PS_PRODUCT PURGE;
 
+
 CREATE TABLE PS_PURCHASE_LIST(
     PURCHASE_NUM NUMBER NOT NULL PRIMARY KEY,
     PRODUCT_NUM NUMBER NOT NULL,
     BUYER_ID VARCHAR2(30) NOT NULL,
     REGDATE DATE NOT NULL,
-    STATUS VARCHAR2(10) NOT NULL DEFAULT '0'
+    STATUS VARCHAR2(10) NOT NULL DEFAULT '0',
+    DELETED VARCHAR2(30) DEFAULT 'NO' NOT NULL
 );
 
 CREATE SEQUENCE PL_SEQ
